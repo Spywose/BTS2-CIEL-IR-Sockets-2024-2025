@@ -15,10 +15,14 @@ NetworkDiscovery::~NetworkDiscovery()
 
 bool NetworkDiscovery::Init()
 {
-	// À compléter :
-	// 1. Essayer de lier le socket au port NetworkPort
-	// 2. Si échec, essayer les ports suivants jusqu'à succès
-	// 3. Ajouter le socket au sélecteur
+	uint16_t port = NetworkPort;
+		do
+		{
+			port = port++;
+			_socket.bind(port);
+		} 
+		while (_socket.bind(port) != sf::Socket::Done);
+		_socketSelector.add(_socket);
 	return true;
 }
 
@@ -42,13 +46,13 @@ void NetworkDiscovery::StopBroadcast()
 void NetworkDiscovery::Update()
 {
 	uint64_t nowMs = GetTimeMs();
+	sf::Packet packet;
 
 	if(_isBroadcastEnabled)
 	{
-		// À compléter :
-		// 1. Vérifier si l'écart de temps entre maintenant et la dernière déclaration de temps est supérieure ou égale à DeclareGameServerDelayMs
-		// 2. Créer un paquet avec MagicPacket et _localServerName
-		// 3. Envoyer le paquet en broadcast
+		nowMs-_lastDeclareGameServerTimeMs >= DeclareGameServerDelayMs;
+		packet << MagicPacket << _LocalServerName;
+		socket.send(packet, sf::IpAddress::Broadcast, port);
 	}
 
 	while(_socketSelector.wait(sf::microseconds(1)) && _socketSelector.isReady(_socket))
